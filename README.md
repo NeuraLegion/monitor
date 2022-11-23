@@ -11,18 +11,28 @@ Quick HTTP Load utility
 
 ## Usage
 
+The `monitor` application takes a few arguments:
+
+1. `-u` or `--url` - The URL to test
+2. `-c` or `--concurrency` - The number of concurrent requests to make (defualts to 10)
+3. `-t` or `--total-requests` - The total number of requests to make (defaults to 1000)
+
 `bin/monitor --url https://brightsec.com/`
-Output:
 
 ```bash
-┌──────────────────┬───────┬─────────────────────────────────────────────────────────────┐
-│ Responses        │ Count │ Description                                                 │
-├──────────────────┼───────┼─────────────────────────────────────────────────────────────┤
-│ IO::TimeoutError │ 407   │ connect timed out                                           │
-│ 502              │ 431   │ Bad Gateway - This means something is wrong with the server │
-│ 200              │ 162   │ OK                                                          │
-└──────────────────┴───────┴─────────────────────────────────────────────────────────────┘
+WAFs detected: Armor Protection (Armor Defense), CloudFlare Web Application Firewall (CloudFlare)
+┌───────────┬───────┬─────────────────────────────────────────────────────────────────────┐
+│ Responses │ Count │ Description                                                         │
+├───────────┼───────┼─────────────────────────────────────────────────────────────────────┤
+│ 503       │ 3     │ Service Unavailable - This means something is wrong with the server │
+│ 200       │ 24    │ OK                                                                  │
+│ 429       │ 973   │ Too Many Requests - This means we are being rate limited            │
+└───────────┴───────┴─────────────────────────────────────────────────────────────────────┘
+Debug Files Created: 976
 ```
+
+Debug files will be saved to the `/tmp/[hostname]` folder, and will be named as `[hostname].random_number.html`
+those files can be easily opened with a browser to see the response.
 
 ## Contributing
 
