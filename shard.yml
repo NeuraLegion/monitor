@@ -13,6 +13,8 @@ dependencies:
     github: epoch/tallboy
   clim:
     github: at-grandpa/clim
+  wafalyzer:
+    github: NeuraLegion/wafalyzer
 
 development_dependencies:
   ameba:

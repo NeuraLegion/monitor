@@ -1,6 +1,8 @@
 require "http"
 require "tallboy"
 require "clim"
+require "wafalyzer"
+require "colorize"
 
 module Monitor
   VERSION = "0.1.0"
@@ -54,6 +56,11 @@ module Monitor
 
         responses = Hash(String | Int32, Int32).new(0)
         exception_messages = Hash(String, String).new
+        wafs = Array(Wafalyzer::Waf).new
+        begin
+          wafs = Wafalyzer.detect(url: uri.to_s)
+        rescue Exception
+        end
         requests_number.times do |i|
           response = response_channel.receive
           if response.is_a?(Exception)
@@ -82,6 +89,7 @@ module Monitor
             end
           end
           system("clear")
+          puts "WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
           puts table
         end
       end
