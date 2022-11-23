@@ -1,22 +1,32 @@
 # monitor
 
-TODO: Write a description here
+Quick HTTP Load utility
 
 ## Installation
 
-TODO: Write installation instructions here
+1. Install Crystal (https://crystal-lang.org/docs/installation/)
+2. `git clone` this repo
+3. `cd` into the repo
+4. `shards build`
 
 ## Usage
 
-TODO: Write usage instructions here
+`bin/monitor --url https://brightsec.com/`
+Output:
 
-## Development
-
-TODO: Write development instructions here
+```bash
+┌──────────────────┬───────┬─────────────────────────────────────────────────────────────┐
+│ Responses        │ Count │ Description                                                 │
+├──────────────────┼───────┼─────────────────────────────────────────────────────────────┤
+│ IO::TimeoutError │ 407   │ connect timed out                                           │
+│ 502              │ 431   │ Bad Gateway - This means something is wrong with the server │
+│ 200              │ 162   │ OK                                                          │
+└──────────────────┴───────┴─────────────────────────────────────────────────────────────┘
+```
 
 ## Contributing
 
-1. Fork it (<https://github.com/your-github-user/monitor/fork>)
+1. Fork it (<https://github.com/NeuraLegion/monitor/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
@@ -24,4 +34,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [Bar Hofesh](https://github.com/your-github-user) - creator and maintainer
+- [Bar Hofesh](https://github.com/bararchy) - creator and maintainer
