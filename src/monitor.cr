@@ -32,8 +32,14 @@ module Monitor
       option "-u URL", "--url=URL", type: String, desc: "Target URL.", required: true
       option "-c CONCURRENCY", "--concurrency=CONCURRENCY", type: Int32, desc: "Number of concurrent requests to make.", default: 10
       option "-t TOTAL_REQUESTS", "--total-requests=TOTAL_REQUESTS", type: Int32, desc: "Total number of requests to make.", default: 1000
+
+      @files_created : Atomic(Int32) = Atomic(Int32).new(0)
+
       run do |opts, args|
         uri = URI.parse(opts.url)
+        Dir.mkdir("#{Dir.tempdir}/#{uri.host}") unless Dir.exists?("#{Dir.tempdir}/#{uri.host}")
+        puts "Debug files will be saved to #{Dir.tempdir}/#{uri.host}"
+        sleep 3.seconds
         unless uri.host && uri.scheme
           raise "Error: URL Is Malformed"
         end
@@ -88,6 +94,7 @@ module Monitor
           puts "WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
           puts table
         end
+        puts "Debug Files Created: #{@files_created.get}" if @files_created.get > 0
       end
 
       def request_handlers(uri_channel : Channel(URI), response_channel : Channel(Int32 | Exception))
@@ -97,7 +104,12 @@ module Monitor
           client.read_timeout = 30.seconds
           client.connect_timeout = 30.seconds
           response = client.get(uri.path || "/")
-
+          unless response.status.success?
+            File.tempfile(prefix: "#{uri.host}", suffix: ".html", dir: "#{Dir.tempdir}/#{uri.host}") do |file|
+              file.print(response.body)
+            end
+            @files_created.add(1)
+          end
           response_channel.send(response.status_code)
         rescue e : Exception
           response_channel.send(e)
