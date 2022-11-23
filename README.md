@@ -4,7 +4,7 @@ Quick HTTP Load utility
 
 ## Installation
 
-1. Install Crystal (https://crystal-lang.org/docs/installation/)
+1. [Install Crystal](https://crystal-lang.org/docs/installation/)
 2. `git clone` this repo
 3. `cd` into the repo
 4. `shards build`
