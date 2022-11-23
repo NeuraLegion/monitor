@@ -1,0 +1,14 @@
+version: 2.0
+shards:
+  ameba:
+    git: https://github.com/crystal-ameba/ameba.git
+    version: 1.3.1
+
+  clim:
+    git: https://github.com/at-grandpa/clim.git
+    version: 0.17.1
+
+  tallboy:
+    git: https://github.com/epoch/tallboy.git
+    version: 0.9.3
+

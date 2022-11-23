@@ -1,0 +1,24 @@
+name: monitor
+version: 0.1.0
+
+authors:
+  - Bar Hofesh <bar.hofesh@gmail.com>
+
+targets:
+  monitor:
+    main: src/monitor.cr
+
+dependencies:
+  tallboy:
+    github: epoch/tallboy
+  clim:
+    github: at-grandpa/clim
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+
+
+crystal: 1.6.2
+
+license: MIT
