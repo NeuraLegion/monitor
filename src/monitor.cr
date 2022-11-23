@@ -43,8 +43,8 @@ module Monitor
         unless uri.host && uri.scheme
           raise "Error: URL Is Malformed"
         end
-        response_channel = Channel(Int32 | Exception).new
-        uri_channel = Channel(URI).new
+        response_channel = Channel(Int32 | Exception).new(opts.total_requests)
+        uri_channel = Channel(URI).new(opts.total_requests)
         opts.concurrency.times do
           spawn do
             request_handlers(uri_channel, response_channel)
