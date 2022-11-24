@@ -100,10 +100,7 @@ module Monitor
       def request_handlers(uri_channel : Channel(URI), response_channel : Channel(Int32 | Exception))
         loop do
           uri = uri_channel.receive
-          client = HTTP::Client.new(uri)
-          client.read_timeout = 30.seconds
-          client.connect_timeout = 30.seconds
-          response = client.get(uri.path || "/")
+          response = HTTP::Client.get(uri.to_s)
           unless response.status.success?
             File.tempfile(prefix: "#{uri.host}", suffix: ".html", dir: "#{Dir.tempdir}/#{uri.host}") do |file|
               file.print(response.body)
@@ -113,8 +110,6 @@ module Monitor
           response_channel.send(response.status_code)
         rescue e : Exception
           response_channel.send(e)
-        ensure
-          client.close if client
         end
       end
     end
