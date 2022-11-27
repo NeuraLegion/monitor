@@ -63,8 +63,10 @@ module Monitor
           wafs = Wafalyzer.detect(url: uri.to_s)
         rescue Exception
         end
+
         opts.total_requests.times do |i|
           response = response_channel.receive
+          print "\r#{i + 1}/#{opts.total_requests} requests complete"
           if response.is_a?(Exception)
             unless exception_messages[response]?
               exception_messages[response.class.to_s] = response.message.to_s
@@ -73,28 +75,26 @@ module Monitor
           else
             responses[response] += 1
           end
-
-          table = Tallboy.table do
-            columns do
-              add "Responses"
-              add "Count"
-              add "Description"
-            end
-            header
-            responses.each do |code, count|
-              case code
-              when Int32
-                row [code, count, PROBLOMATIC_STATUS_CODES[code]? || "OK"]
-              when String
-                row [code, count, exception_messages[code]]
-              end
+        end
+        table = Tallboy.table do
+          columns do
+            add "Responses"
+            add "Count"
+            add "Description"
+          end
+          header
+          responses.each do |code, count|
+            case code
+            when Int32
+              row [code, count, PROBLOMATIC_STATUS_CODES[code]? || "OK"]
+            when String
+              row [code, count, exception_messages[code]]
             end
           end
-          system("clear")
-          puts "WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
-          puts table
         end
+        puts table
         puts "Debug Files Created: #{@files_created.get}" if @files_created.get > 0
+        puts "WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
       end
 
       def request_handlers(uri_channel : Channel(URI), response_channel : Channel(Int32 | Exception))
