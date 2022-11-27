@@ -92,7 +92,7 @@ module Monitor
             end
           end
         end
-        puts table
+        puts "\n#{table}"
         puts "Debug Files Created: #{@files_created.get}" if @files_created.get > 0
         puts "WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
       end
