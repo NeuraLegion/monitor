@@ -16,6 +16,7 @@ The `monitor` application takes a few arguments:
 1. `-u` or `--url` - The URL to test
 2. `-c` or `--concurrency` - The number of concurrent requests to make (defualts to 10)
 3. `-t` or `--total-requests` - The total number of requests to make (defaults to 1000)
+4. `-a` or `--attack` - Adds a `<script>alert(1)</script>` to the end of the URL
 
 `bin/monitor --url https://brightsec.com/`
 
