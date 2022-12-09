@@ -9,13 +9,20 @@ module Monitor
 
   class Run < Clim
     PROBLOMATIC_STATUS_CODES = {
+      400 => "Bad Request - The server could not understand the request due to invalid syntax.",
       401 => "Unauthorized - The request requires user authentication.",
       403 => "Forbidden - The server understood the request, but is refusing to fulfill it.",
-      429 => "Too Many Requests - This means we are being rate limited",
-      500 => "Internal Server Error - This means something is wrong with the server",
-      502 => "Bad Gateway - This means something is wrong with the server",
-      503 => "Service Unavailable - This means something is wrong with the server",
-      504 => "Gateway Timeout - This means something is wrong with the server",
+      405 => "Method Not Allowed - The request method is not supported by the target resource.",
+      408 => "Request Timeout - The client did not produce a request within the time that the server was prepared to wait.",
+      410 => "Gone - The target resource is no longer available at the origin server and is no longer expected to be available.",
+      411 => "Length Required - The server requires the Content-Length header field to be present in the request.",
+      415 => "Unsupported Media Type - The server is refusing to service the request because the payload is in a format not supported by the target resource.",
+      429 => "Too Many Requests - The client has sent too many requests in a given amount of time.",
+      500 => "Internal Server Error - The server encountered an unexpected condition that prevented it from fulfilling the request.",
+      501 => "Not Implemented - The server does not support the functionality required to fulfill the request.",
+      502 => "Bad Gateway - The server received an invalid response from an upstream server while attempting to fulfill the request.",
+      503 => "Service Unavailable - The server is currently unable to handle the request due to maintenance or capacity issues.",
+      504 => "Gateway Timeout - The server did not receive a timely response from an upstream server while attempting to fulfill the request.",
     }
 
     main do
