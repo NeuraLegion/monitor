@@ -32,11 +32,19 @@ module Monitor
       option "-u URL", "--url=URL", type: String, desc: "Target URL.", required: true
       option "-c CONCURRENCY", "--concurrency=CONCURRENCY", type: Int32, desc: "Number of concurrent requests to make.", default: 10
       option "-t TOTAL_REQUESTS", "--total-requests=TOTAL_REQUESTS", type: Int32, desc: "Total number of requests to make.", default: 1000
-
+      option "-a", "--attack", desc: "Adds <script>alert(1)</script> to the end of the URL.", default: false, type: Bool
       @files_created : Atomic(Int32) = Atomic(Int32).new(0)
 
       run do |opts, args|
         uri = URI.parse(opts.url)
+        if opts.attack
+          if uri.query
+            uri.query = "#{uri.query}&id=<script>alert(1)</script>"
+          else
+            uri.query = "id=<script>alert(1)</script>"
+          end
+          puts "Adding attack to URL: #{uri.to_s}"
+        end
         Dir.mkdir("#{Dir.tempdir}/#{uri.host}") unless Dir.exists?("#{Dir.tempdir}/#{uri.host}")
         puts "Debug files will be saved to #{Dir.tempdir}/#{uri.host}"
         sleep 3.seconds
