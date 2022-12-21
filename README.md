@@ -35,6 +35,13 @@ Debug Files Created: 976
 Debug files will be saved to the `/tmp/[hostname]` folder, and will be named as `[hostname].random_number.html`
 those files can be easily opened with a browser to see the response.
 
+### Using Docker
+
+1. git clone this repo
+2. `cd` into the repo
+3. `docker build -t monitor .`
+4. `docker run -it monitor --url https://brightsec.com/`
+
 ## Contributing
 
 1. Fork it (<https://github.com/NeuraLegion/monitor/fork>)
