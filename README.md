@@ -37,6 +37,11 @@ those files can be easily opened with a browser to see the response.
 
 ### Using Docker
 
+using docker is as simple as:
+`docker run -it neuralegion/monitor --url https://brightsec.com/`
+
+or if you want to build it yourself:
+
 1. git clone this repo
 2. `cd` into the repo
 3. `docker build -t monitor .`
