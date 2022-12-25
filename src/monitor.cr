@@ -126,6 +126,7 @@ module Monitor
           end
         end
         puts "\n#{table}"
+        puts "• External IP: #{get_external_ip}".colorize(:white).mode(:bold)
         puts "• Debug Files Created: #{@files_created.get}" if @files_created.get > 0
         puts "• WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
         puts "• Random URL gave 200, this will make finding protected resource harder, it's advised to use an API EP".colorize(:red).mode(:bold) if random_200
@@ -164,6 +165,12 @@ module Monitor
         random_uri.path = random_path
         response = HTTP::Client.get(random_uri.to_s)
         response.status_code == 200
+      end
+
+      def get_external_ip : String
+        HTTP::Client.get("https://api.ipify.org").body.to_s
+      rescue
+        ""
       end
 
       def detect_potential_subdomains(uri : URI) : Array(String)
