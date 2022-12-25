@@ -25,6 +25,20 @@ module Monitor
       504 => "Gateway Timeout - The server did not receive a timely response from an upstream server while attempting to fulfill the request.",
     }
 
+    WORDPRESS_INDICATOR = {
+      "wp-content",
+      "wp-includes",
+      "wp-json",
+      "wp-login.php",
+      "wp-admin",
+      "wp-content/plugins",
+      "wp-content/themes",
+      "wp-content/uploads",
+      "wp-content/cache",
+      "wp-content/upgrade",
+      "wp-content/languages",
+    }
+
     main do
       desc <<-DESC
         ██████╗ ██████╗ ██╗ ██████╗ ██╗  ██╗████████╗███████╗███████╗ ██████╗              ███╗   ███╗ ██████╗ ███╗   ██╗██╗████████╗ ██████╗ ██████╗
@@ -79,6 +93,10 @@ module Monitor
         rescue Exception
         end
 
+        wordpress = detect_wordpress(uri)
+        random_200 = random_url_give_200(uri)
+        potential_subdomains = detect_potential_subdomains(uri)
+
         opts.total_requests.times do |i|
           response = response_channel.receive
           print "\r#{i + 1}/#{opts.total_requests} requests complete"
@@ -108,8 +126,15 @@ module Monitor
           end
         end
         puts "\n#{table}"
-        puts "Debug Files Created: #{@files_created.get}" if @files_created.get > 0
-        puts "WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
+        puts "• Debug Files Created: #{@files_created.get}" if @files_created.get > 0
+        puts "• WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
+        puts "• Random URL gave 200, this will make finding protected resource harder, it's advised to use an API EP".colorize(:red).mode(:bold) if random_200
+        puts "• WordPress detected, it's advised to run a WordPress scan".colorize(:red).mode(:bold) if wordpress
+        unless potential_subdomains.empty?
+          print "• Found potential subdomains: ".colorize(:red).mode(:bold)
+          print potential_subdomains.join(", ")
+          puts " It's advised to include these in your scan, otherwise you may miss some resources.".colorize(:red).mode(:bold)
+        end
       end
 
       def request_handlers(uri_channel : Channel(URI), response_channel : Channel(Int32 | Exception))
@@ -126,6 +151,37 @@ module Monitor
         rescue e : Exception
           response_channel.send(e)
         end
+      end
+
+      def detect_wordpress(uri : URI) : Bool
+        body = HTTP::Client.get(uri.to_s).body
+        WORDPRESS_INDICATOR.any? { |indicator| body.includes?(indicator) }
+      end
+
+      def random_url_give_200(uri : URI) : Bool
+        random_uri = URI.parse(uri.to_s)
+        random_path = "/#{Random::Secure.hex}"
+        random_uri.path = random_path
+        response = HTTP::Client.get(random_uri.to_s)
+        response.status_code == 200
+      end
+
+      def detect_potential_subdomains(uri : URI) : Array(String)
+        resp = HTTP::Client.get(uri.to_s)
+        main_host = URI.parse(uri.to_s).host.to_s
+        potential_subdomains = Array(String).new
+        if content_header = resp.headers["content-security-policy"]?
+          content_header.split(" ").each do |url|
+            url = url.strip
+            if url.starts_with?("https://") || url.starts_with?("http://")
+              host = URI.parse(url).host.to_s
+              if host.includes?(main_host) && host.includes?("api") && host.size > main_host.size
+                potential_subdomains << host
+              end
+            end
+          end
+        end
+        potential_subdomains.uniq
       end
     end
   end
