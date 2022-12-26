@@ -69,12 +69,13 @@ module Monitor
         end
         Dir.mkdir("#{Dir.tempdir}/#{uri.host}") unless Dir.exists?("#{Dir.tempdir}/#{uri.host}")
         puts "Debug files will be saved to #{Dir.tempdir}/#{uri.host}"
-        sleep 3.seconds
+
         unless uri.host && uri.scheme
           raise "Error: URL Is Malformed"
         end
         response_channel = Channel(Int32 | Exception).new(opts.total_requests)
         uri_channel = Channel(URI).new(opts.total_requests)
+        puts "Starting #{opts.concurrency} concurrent handlers..."
         opts.concurrency.times do
           spawn do
             request_handlers(uri_channel, response_channel)
