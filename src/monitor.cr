@@ -90,6 +90,7 @@ module Monitor
         exception_messages = Hash(String, String).new
         wafs = Array(Wafalyzer::Waf).new
         begin
+          puts "Detecting WAFs..."
           wafs = Wafalyzer.detect(url: uri.to_s)
         rescue e : Exception
           puts "Error: Unable to detect WAF #{e.message}"
@@ -161,6 +162,7 @@ module Monitor
       end
 
       def detect_wordpress(uri : URI) : Bool
+        puts "Detecting WordPress..."
         body = HTTP::Client.get(uri.to_s).body
         WORDPRESS_INDICATOR.any? { |indicator| body.includes?(indicator) }
       rescue e : Exception
@@ -169,6 +171,7 @@ module Monitor
       end
 
       def random_url_give_200(uri : URI) : Bool
+        puts "Checking random URL..."
         random_uri = URI.parse(uri.to_s)
         random_path = "/#{Random::Secure.hex}"
         random_uri.path = random_path
@@ -186,6 +189,7 @@ module Monitor
       end
 
       def detect_potential_subdomains(uri : URI) : Array(String)
+        puts "Detecting potential subdomains..."
         resp = HTTP::Client.get(uri.to_s)
         main_host = URI.parse(uri.to_s).host.to_s
         potential_subdomains = Array(String).new
