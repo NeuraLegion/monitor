@@ -55,6 +55,7 @@ module Monitor
       option "-t TOTAL_REQUESTS", "--total-requests=TOTAL_REQUESTS", type: Int32, desc: "Total number of requests to make.", default: 1000
       option "-a", "--attack", desc: "Adds <script>alert(1)</script> to the end of the URL.", default: false, type: Bool
       @files_created : Atomic(Int32) = Atomic(Int32).new(0)
+      @medium_response_time : Atomic(Int32) = Atomic(Int32).new(0)
 
       run do |opts, args|
         uri = URI.parse(opts.url)
@@ -90,7 +91,8 @@ module Monitor
         wafs = Array(Wafalyzer::Waf).new
         begin
           wafs = Wafalyzer.detect(url: uri.to_s)
-        rescue Exception
+        rescue e : Exception
+          puts "Error: Unable to detect WAF #{e.message}"
         end
 
         wordpress = detect_wordpress(uri)
@@ -126,6 +128,7 @@ module Monitor
           end
         end
         puts "\n#{table}"
+        puts "• Avrage Response Time: #{@medium_response_time.get / opts.total_requests}s"
         puts "• External IP: #{get_external_ip}".colorize(:white).mode(:bold)
         puts "• Debug Files Created: #{@files_created.get}" if @files_created.get > 0
         puts "• WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
@@ -141,7 +144,10 @@ module Monitor
       def request_handlers(uri_channel : Channel(URI), response_channel : Channel(Int32 | Exception))
         loop do
           uri = uri_channel.receive
+          time_before = Time.utc
           response = HTTP::Client.get(uri.to_s)
+          time_after = Time.utc
+          @medium_response_time.add((time_after - time_before).total_seconds.to_i)
           unless response.status.success?
             File.tempfile(prefix: "#{uri.host}", suffix: ".html", dir: "#{Dir.tempdir}/#{uri.host}") do |file|
               file.print(response.body)
@@ -157,7 +163,8 @@ module Monitor
       def detect_wordpress(uri : URI) : Bool
         body = HTTP::Client.get(uri.to_s).body
         WORDPRESS_INDICATOR.any? { |indicator| body.includes?(indicator) }
-      rescue
+      rescue e : Exception
+        puts "Error checking for WordPress: #{e.message}"
         false
       end
 
@@ -167,14 +174,15 @@ module Monitor
         random_uri.path = random_path
         response = HTTP::Client.get(random_uri.to_s)
         response.status_code == 200
-      rescue
+      rescue e : Exception
+        puts "Error checking random URL: #{e.message}"
         false
       end
 
       def get_external_ip : String
         HTTP::Client.get("https://api.ipify.org").body.to_s
-      rescue
-        ""
+      rescue e : Exception
+        "Error getting external IP: #{e.message}"
       end
 
       def detect_potential_subdomains(uri : URI) : Array(String)
@@ -193,7 +201,8 @@ module Monitor
           end
         end
         potential_subdomains.uniq
-      rescue
+      rescue e : Exception
+        puts "Error detecting potential subdomains: #{e.message}"
         Array(String).new
       end
     end
