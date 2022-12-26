@@ -157,6 +157,8 @@ module Monitor
       def detect_wordpress(uri : URI) : Bool
         body = HTTP::Client.get(uri.to_s).body
         WORDPRESS_INDICATOR.any? { |indicator| body.includes?(indicator) }
+      rescue
+        false
       end
 
       def random_url_give_200(uri : URI) : Bool
@@ -165,6 +167,8 @@ module Monitor
         random_uri.path = random_path
         response = HTTP::Client.get(random_uri.to_s)
         response.status_code == 200
+      rescue
+        false
       end
 
       def get_external_ip : String
@@ -189,6 +193,8 @@ module Monitor
           end
         end
         potential_subdomains.uniq
+      rescue
+        Array(String).new
       end
     end
   end
