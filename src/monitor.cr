@@ -5,7 +5,7 @@ require "wafalyzer"
 require "colorize"
 
 module Monitor
-  VERSION = "0.1.0"
+  VERSION = "0.1.1"
 
   class Run < Clim
     PROBLOMATIC_STATUS_CODES = {
@@ -100,6 +100,7 @@ module Monitor
         wordpress = detect_wordpress(uri)
         random_200 = random_url_give_200(uri)
         potential_subdomains = detect_potential_subdomains(uri)
+        dns_resolve_time = check_dns_resolve_speed(uri)
 
         opts.total_requests.times do |i|
           response = response_channel.receive
@@ -131,6 +132,7 @@ module Monitor
         end
         puts "\n#{table}"
         puts "• Avrage Response Time: #{@medium_response_time.get / opts.total_requests}s"
+        puts "• DNS resolve time: #{dns_resolve_time}s"
         puts "• External IP: #{get_external_ip}".colorize(:white).mode(:bold)
         puts "• Debug Files Created: #{@files_created.get}" if @files_created.get > 0
         puts "• WAFs detected: #{wafs.map(&.to_s).join(", ")}".colorize(:red).mode(:bold) unless wafs.empty?
@@ -169,6 +171,22 @@ module Monitor
       rescue e : Exception
         puts "Error checking for WordPress: #{e.message}"
         false
+      end
+
+      def check_dns_resolve_speed(uri : URI) : Float64
+        puts "Checking DNS resolve speed..."
+        elapsed = Time.measure do
+          Socket::Addrinfo.resolve(
+            uri.host.to_s,
+            uri.port || URI.default_port(uri.scheme.to_s) || 80,
+            type: Socket::Type::STREAM,
+            protocol: Socket::Protocol::TCP
+          )
+        end
+        elapsed.total_seconds
+      rescue e : Exception
+        puts "Error checking DNS resolve speed: #{e.message}"
+        0.0
       end
 
       def random_url_give_200(uri : URI) : Bool
