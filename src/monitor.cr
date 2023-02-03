@@ -57,6 +57,7 @@ module Monitor
       option "-c CONCURRENCY", "--concurrency=CONCURRENCY", type: Int32, desc: "Number of concurrent requests to make.", default: 10
       option "-t TOTAL_REQUESTS", "--total-requests=TOTAL_REQUESTS", type: Int32, desc: "Total number of requests to make.", default: 1000
       option "-a", "--attack", desc: "Adds <script>alert(1)</script> to the end of the URL.", default: false, type: Bool
+      option "--skip-waf", desc: "Skips WAF detection.", default: false, type: Bool
       @files_created : Atomic(Int32) = Atomic(Int32).new(0)
       @medium_response_time : Atomic(Int32) = Atomic(Int32).new(0)
 
@@ -93,11 +94,13 @@ module Monitor
         responses = Hash(String | Int32, Int32).new(0)
         exception_messages = Hash(String, String).new
         wafs = Array(Wafalyzer::Waf).new
-        begin
-          puts "Detecting WAFs..."
-          wafs = Wafalyzer.detect(url: uri.to_s)
-        rescue e : Exception
-          puts "Error: Unable to detect WAF #{e.message}"
+        unless opts.skip_waf
+          begin
+            puts "Detecting WAFs..."
+            wafs = Wafalyzer.detect(url: uri.to_s)
+          rescue e : Exception
+            puts "Error: Unable to detect WAF #{e.message}"
+          end
         end
 
         wordpress = detect_wordpress(uri)
