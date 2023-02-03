@@ -9,9 +9,12 @@ module Monitor
 
   class Run < Clim
     PROBLOMATIC_STATUS_CODES = {
+      301 => "Moved Permanently - The target resource has been assigned a new permanent URI and any future references to this resource should use one of the enclosed URIs.",
+      302 => "Found - The target resource resides temporarily under a different URI.",
       400 => "Bad Request - The server could not understand the request due to invalid syntax.",
       401 => "Unauthorized - The request requires user authentication.",
       403 => "Forbidden - The server understood the request, but is refusing to fulfill it.",
+      404 => "Not Found - The server can not find the requested resource.",
       405 => "Method Not Allowed - The request method is not supported by the target resource.",
       408 => "Request Timeout - The client did not produce a request within the time that the server was prepared to wait.",
       410 => "Gone - The target resource is no longer available at the origin server and is no longer expected to be available.",
